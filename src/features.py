@@ -73,15 +73,15 @@ def build_dataset(matches,n=5):
 
     return X, y
 
+if __name__ == "__main__":
+    from pathlib import Path
+    from dataloader import loadmatches
 
-from pathlib import Path
-from dataloader import loadmatches
-\
-testfile = "./dataset/2324.csv"
+    testfile = "./dataset/2324.csv"
 
-matches = loadmatches(testfile)
-X, y = build_dataset(matches)
+    matches = loadmatches(testfile)
+    X, y = build_dataset(matches)
 
-print(f"Dataset generated! Total samples: {len(X)}")
-print("Sample 0 (Matchday 1 - no history):", X[0], "--> Result:", y[0])
-print("Sample 50 (Mid-season form):", X[50], "--> Result:", y[50])
+    print(f"Dataset generated! Total samples: {len(X)}")
+    print("Sample 0 (Matchday 1 - no history):", X[0], "--> Result:", y[0])
+    print("Sample 50 (Mid-season form):", X[50], "--> Result:", y[50])

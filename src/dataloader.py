@@ -2,6 +2,15 @@ import csv
 from pathlib import Path
 import os
 
+
+def safe_int(value, default = 0) -> int:
+  if not value or value.strip() == "":
+    return default
+  try:
+    return int(value)
+  except ValueError:
+    return default
+  
 def loadmatches(csv_path):
     matches = []
     path = Path(csv_path)
@@ -18,21 +27,23 @@ def loadmatches(csv_path):
                     "date": row["Date"],
                     "home_team": row["HomeTeam"],
                     "away_team": row["AwayTeam"],
-                    "home_goals": int(row["FTHG"]),
-                    "away_goals": int(row["FTAG"]),
+                    "home_goals": safe_int(row["FTHG"]),
+                    "away_goals": safe_int(row["FTAG"]),
                     "result": row["FTR"],
-                    "home_shots": int(row["HS"]),
-                    "away_shots": int(row["AS"]),
-                    "home_shots_target": int(row["HST"]),
-                    "away_shots_target": int(row["AST"]),
+                    "home_shots": safe_int(row["HS"]),
+                    "away_shots": safe_int(row["AS"]),
+                    "home_shots_target": safe_int(row["HST"]),
+                    "away_shots_target": safe_int(row["AST"]),
                 }
                 matches.append(cleandata)
         return matches
-print(os.getcwd())
-testfile = Path("dataset/2627.csv")
-data = loadmatches(testfile)
 
-print(f"Total matches loaded: {len(data)}")
-print("\nFirst match sample:")
-print(data[0])
+if __name__ == "__main__":
+    print(os.getcwd())
+    testfile = Path("dataset/2627.csv")
+    data = loadmatches(testfile)
+
+    print(f"Total matches loaded: {len(data)}")
+    print("\nFirst match sample:")
+    print(data[0])
 
