@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
+from sklearn.preprocessing import StandardScaler
 
 from dataloader import loadmatches
 from features import build_dataset
@@ -32,11 +33,16 @@ def train_baseline_model():
 
   print(f"Training on: {len(X_train)} matches")
   print(f"Testing on:  {len(X_test)} matches")
-        
-  model = LogisticRegression(max_iter=1000)
-  model.fit(X_train, y_train)
 
-  predictions = model.predict(X_test)
+  scaler = StandardScaler()
+
+  X_train_scaled = scaler.fit_transform(X_train)
+  X_test_scaled = scaler.fit_transform(X_test)
+        
+  model = LogisticRegression(class_weight="balanced", max_iter=1000)
+  model.fit(X_train_scaled, y_train)
+
+  predictions = model.predict(X_test_scaled)
   acc = accuracy_score(y_test, predictions)
 
   print(f"\nModel Accuracy: {acc:.2%}")
