@@ -80,6 +80,14 @@ else:
     m2.metric("Draw", f"{prob_map['D']:.1%}")
     m3.metric(f"{away_team} Win", f"{prob_map['A']:.1%}")
 
+    prob_diff = abs(prob_map["H"] - prob_map["A"])
+
+    if prob_diff < 0.12 or prob_map["D"] > 0.26:
+        st.warning(
+            "⚠️ **High Draw / Upset Alert:** Tactical differentials indicate a"
+            " tightly contested fixture. Consider Draw or Double Chance (1X / X2)."
+        )
+
     st.write(f"**{home_team} Win Probability**")
     st.progress(float(prob_map["H"]))
 
