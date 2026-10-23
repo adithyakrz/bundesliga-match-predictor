@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
 
 from dataloader import loadmatches
 from features import build_dataset
@@ -21,7 +22,7 @@ def train_baseline_model():
 
   print(f"Total No:of matches loaded: {len(all_matches)}")
 
-  X,y = build_dataset(all_matches,n=5)
+  X,y = build_dataset(all_matches)
 
   X = np.array(X)
   y = np.array(y)
@@ -37,9 +38,11 @@ def train_baseline_model():
   scaler = StandardScaler()
 
   X_train_scaled = scaler.fit_transform(X_train)
-  X_test_scaled = scaler.fit_transform(X_test)
-        
-  model = LogisticRegression(class_weight="balanced", max_iter=1000)
+  X_test_scaled = scaler.transform(X_test)
+
+
+  #LOGISTIC REGRESSION
+  model = LogisticRegression(C=0.1, max_iter=1000)
   model.fit(X_train_scaled, y_train)
 
   predictions = model.predict(X_test_scaled)
@@ -48,6 +51,18 @@ def train_baseline_model():
   print(f"\nModel Accuracy: {acc:.2%}")
   print("\nDetailed Performance Breakdown:")
   print(classification_report(y_test, predictions, zero_division=0))
+
+  #RANDOM FOREST
+
+  rf = RandomForestClassifier(n_estimators=150, max_depth=4, random_state=42)
+  rf.fit(X_train, y_train)
+  rf_preds = rf.predict(X_test)
+  rf_acc = accuracy_score(y_test, rf_preds)
+
+  print("=" * 50)
+  print(f"Random Forest (Depth 4) Accuracy: {rf_acc:.2%}")
+  print("=" * 50)
+  print(classification_report(y_test, rf_preds, zero_division=0))
 
 
 
