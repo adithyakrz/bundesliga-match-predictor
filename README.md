@@ -6,6 +6,8 @@ A simple machine learning project for predicting Bundesliga match outcomes using
 
 This project uses a logistic regression model to estimate the probability of a home win, draw, or away win for a selected Bundesliga fixture. The model is trained on historical match data and packaged into a production artifact used by the Streamlit app.
 
+link: https://bundesliga-match-predictor.streamlit.app/
+
 ## Features
 
 - Predicts Home Win / Draw / Away Win probabilities
