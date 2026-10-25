@@ -129,9 +129,9 @@ def compute_h2h(h2h_history,home_team,away_team,n=4):
 
     if not past_matches:
         return 1.35
-
+    pts = 0
     for m in past_matches:
-        pts = 0
+        
         if m["winner"] == "D":
             pts += 1
         elif m["winner"] == home_team:
