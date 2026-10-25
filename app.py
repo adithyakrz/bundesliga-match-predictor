@@ -2,7 +2,8 @@ from pathlib import Path
 import pickle
 import numpy as np
 import streamlit as st
-from src.features import computeteamstats
+
+from src.features import computeteamstats, compute_h2h
 
 # Page configuration
 st.set_page_config(
@@ -157,14 +158,13 @@ scaler = artifacts["scaler"]
 team_hist = artifacts["team_hist"]
 home_hist = artifacts["home_hist"]
 away_hist = artifacts["away_hist"]
+h2h_hist = artifacts.get("h2h_hist", {})
 teams = artifacts["teams"]
 
-# Clean Header
 # Modern 2-Column Header with Official Logo
 head_col1, head_col2 = st.columns([1, 5], vertical_alignment="center")
 
 with head_col1:
-  # Crisp vector/transparent logo via official Wikimedia Commons CDN
   st.image(
       "https://upload.wikimedia.org/wikipedia/en/d/df/Bundesliga_logo_%282017%29.svg",
       width=75,
@@ -177,13 +177,11 @@ with head_col2:
       unsafe_allow_html=True,
   )
   st.caption(
-      "Calibrated logistic regression model using 8-game rolling metrics,"
-      " venue splits, and shot differentials. Data current through October"
-      " 2026."
+      "Class-balanced logistic regression using rolling metrics, venue splits,"
+      " and head-to-head dynamics. Data current through October 2026."
   )
 
 st.write("---")
-
 st.write("")
 
 # Team Selectors
@@ -213,6 +211,9 @@ else:
   h_venue = computeteamstats(home_hist[home_team], n=5)
   a_venue = computeteamstats(away_hist[away_team], n=5)
 
+  h2h_pts = compute_h2h(h2h_hist, home_team, away_team, n=4)
+
+  # Construct the full 8-element feature array
   raw_features = np.array([[
       h_s3["avg_points"] - a_s3["avg_points"],
       h_s3["avg_goal_diff"] - a_s3["avg_goal_diff"],
@@ -221,6 +222,7 @@ else:
       h_s8["avg_shots_target"] - a_s8["avg_shots_target"],
       h_venue["avg_points"] - a_venue["avg_points"],
       h_venue["avg_goal_diff"] - a_venue["avg_goal_diff"],
+      h2h_pts,
   ]])
 
   scaled_features = scaler.transform(raw_features)
@@ -280,12 +282,26 @@ else:
             f" {away_team}</span>"
         )
 
+    def get_h2h_badge(pts):
+      if abs(pts - 1.35) < 0.25:
+        return '<span class="badge-adv adv-neutral">Historical Parity</span>'
+      elif pts > 1.35:
+        return (
+            f'<span class="badge-adv adv-home">{pts:.2f} pts/gm'
+            f" ({home_team})</span>"
+        )
+      else:
+        return (
+            f'<span class="badge-adv adv-away">{3.0 - pts:.2f} pts/gm'
+            f" ({away_team})</span>"
+        )
+
     table_html = f"""
     <table class="diff-table">
         <thead>
             <tr>
                 <th>Factor</th>
-                <th>Delta (Home - Away)</th>
+                <th>Delta / Metric</th>
                 <th>Advantage</th>
             </tr>
         </thead>
@@ -310,6 +326,11 @@ else:
                 <td>{raw_features[0][0]:+.2f} pts / match</td>
                 <td>{get_adv_badge(raw_features[0][0])}</td>
             </tr>
+            <tr>
+                <td>Head-to-Head Point Rate (Last 4 Mtgs)</td>
+                <td>{raw_features[0][7]:.2f} pts earned by Home</td>
+                <td>{get_h2h_badge(raw_features[0][7])}</td>
+            </tr>
         </tbody>
     </table>
     """
@@ -318,8 +339,7 @@ else:
 # Footer
 st.write("---")
 st.markdown(
-    "<small style='color: #64748b;'>Calibrated model architecture (C=0.1)."
-    " Out-of-sample accuracy: 55.4% across 193 chronologically split"
-    " fixtures.</small>",
+    "<small style='color: #64748b;'>Balanced logistic regression (C=0.1)."
+    " Evaluated across 193 out-of-sample matches with 30% draw recall.</small>",
     unsafe_allow_html=True,
 )
