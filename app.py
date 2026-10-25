@@ -339,7 +339,7 @@ else:
 # Footer
 st.write("---")
 st.markdown(
-    "<small style='color: #64748b;'>Balanced logistic regression (C=0.1)."
-    " Evaluated across 193 out-of-sample matches with 30% draw recall.</small>",
+    "<small style='color: #64748b;'>Balanced logistic regression (C=0.1).</small><br>"
+    "<small style='color: #64748b;'>Trained using the help of 8 features</small>",
     unsafe_allow_html=True,
 )
