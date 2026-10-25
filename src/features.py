@@ -53,6 +53,7 @@ def build_dataset(matches,n=5):
     team_hist = defaultdict(list)
     home_hist = defaultdict(list)
     away_hist = defaultdict(list)
+    h2h_hist = defaultdict(list)
     X = []
     y = []
 
@@ -77,6 +78,8 @@ def build_dataset(matches,n=5):
         h_venue = computeteamstats(home_hist[home], n=5)
         a_venue = computeteamstats(away_hist[away], n=5)
 
+        h2h_home_pts = compute_h2h(h2h_hist, home, away, n=4)
+
         features = [
         h_s3["avg_points"] - a_s3["avg_points"],
         h_s3["avg_goal_diff"] - a_s3["avg_goal_diff"],
@@ -85,6 +88,7 @@ def build_dataset(matches,n=5):
         h_s8["avg_shots_target"] - a_s8["avg_shots_target"],
         h_venue["avg_points"] - a_venue["avg_points"],
         h_venue["avg_goal_diff"] - a_venue["avg_goal_diff"],
+        h2h_home_pts,
     ]
 
         X.append(features)
@@ -97,6 +101,13 @@ def build_dataset(matches,n=5):
         team_hist[away].append(perf_a)
         home_hist[home].append(perf_h)
         away_hist[away].append(perf_a)
+        pair_key = tuple(sorted([home, away]))
+        winner = (
+            "D"
+            if match["result"] == "D"
+            else (home if match["result"] == "H" else away)
+        )
+        h2h_hist[pair_key].append({"winner": winner})
 
     return X, y
 
@@ -112,3 +123,17 @@ if __name__ == "__main__":
     print(f"Dataset generated! Total samples: {len(X)}")
     print("Sample 0 (Matchday 1 - no history):", X[0], "--> Result:", y[0])
     print("Sample 50 (Mid-season form):", X[50], "--> Result:", y[50])
+def compute_h2h(h2h_history,home_team,away_team,n=4):
+    pair_key = tuple(sorted([home_team, away_team]))
+    past_matches = h2h_history.get(pair_key, [])[-n:]
+
+    if not past_matches:
+        return 1.35
+
+    for m in past_matches:
+        pts = 0
+        if m["winner"] == "D":
+            pts += 1
+        elif m["winner"] == home_team:
+            pts += 3
+    return pts / len(past_matches)

@@ -26,12 +26,13 @@ def export_production_details():
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    model = LogisticRegression(C=0.1, max_iter=1000)
+    model = LogisticRegression(C=0.1, max_iter=1000,class_weight="balanced")
     model.fit(X_scaled, y)
 
     team_hist = defaultdict(list)
     home_hist = defaultdict(list)
     away_hist = defaultdict(list)
+    h2h_hist = defaultdict(list)
 
     for match in all_matches:
         h, a = match["home_team"], match["away_team"]
@@ -41,6 +42,13 @@ def export_production_details():
         team_hist[a].append(perf_a)
         home_hist[h].append(perf_h)
         away_hist[a].append(perf_a)
+        pair_key = tuple(sorted([h, a]))
+        winner = (
+            "D"
+            if match["result"] == "D"
+            else (h if match["result"] == "H" else a)
+        )
+        h2h_hist[pair_key].append({"winner": winner})
 
     teams = sorted(list(team_hist.keys()))
 
@@ -50,6 +58,7 @@ def export_production_details():
         "team_hist": dict(team_hist),
         "home_hist": dict(home_hist),
         "away_hist": dict(away_hist),
+        "h2h_hist": dict(h2h_hist),
         "teams": teams,
     }
     artifact_path = models_dir / "bundesliga_model.pkl"

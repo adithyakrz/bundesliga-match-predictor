@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 
@@ -41,8 +42,24 @@ def train_baseline_model():
   X_test_scaled = scaler.transform(X_test)
 
 
+  tree_model = HistGradientBoostingClassifier(
+    max_iter=100,
+    learning_rate=0.05,
+    max_depth=3,
+    min_samples_leaf=20,
+    class_weight="balanced",
+    random_state=42,
+  )
+  tree_model.fit(X_train_scaled, y_train)
+
+  tree_preds = tree_model.predict(X_test_scaled)
+
+  print(f"Tree Model Accuracy: {accuracy_score(y_test, tree_preds):.2%}\n")
+  print(classification_report(y_test, tree_preds))
+
+  
   #LOGISTIC REGRESSION
-  model = LogisticRegression(C=0.1, max_iter=1000)
+  model = LogisticRegression(C=0.1, max_iter=1000,class_weight="balanced")
   model.fit(X_train_scaled, y_train)
 
   predictions = model.predict(X_test_scaled)
