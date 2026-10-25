@@ -210,7 +210,6 @@ else:
   a_s8 = computeteamstats(team_hist[away_team], n=8)
   h_venue = computeteamstats(home_hist[home_team], n=5)
   a_venue = computeteamstats(away_hist[away_team], n=5)
-
   h2h_pts = compute_h2h(h2h_hist, home_team, away_team, n=4)
 
   # Construct the full 8-element feature array
